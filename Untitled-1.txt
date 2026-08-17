@@ -1,0 +1,356 @@
+<div class="agri_pest_control-container">
+  <div class="agri_pest_control-wrapper">
+    <h2>Pest Control Service Booking Form</h2>
+
+    <form id="pestControlForm">
+
+      <!-- Pin Code -->
+      <div class="form-group">
+        <input type="text" id="pinCodeInput" name="pin_code" placeholder="Enter Pin Code" required>
+        <div id="pinCodeError" style="color: red; font-size: 14px; margin-top: 2px;"></div>
+      </div>
+
+<div class="agri_pest-1603" id="agri_pest-1603">
+      <!-- Name -->
+      <div class="form-group">
+        <input type="text" name="first_name" placeholder="First Name" required>
+        <input type="text" name="last_name" placeholder="Last Name" required>
+      </div>
+
+      <!-- Contact -->
+      <div class="form-group">
+        <input type="email" name="email" placeholder="Email Address" required>
+        <input type="tel" name="phone" placeholder="Phone Number" minlength="10" required>
+      </div>
+
+      <!-- Property Type -->
+      <label class="form-label">Property Type</label>
+      <div class="radio-group">
+        <input type="radio" name="property_type" value="Residential" id="residential" required>
+        <label class="radio-item" for="residential">Residential Property</label>
+        <input type="radio" name="property_type" value="Commercial" id="commercial">
+        <label class="radio-item" for="commercial">Commercial Property</label>
+      </div>
+
+      <!-- Dynamic Service Selection -->
+      <label class="form-label">Select Service</label>
+      <select id="serviceSelect" name="service" required>
+        <option value="">-- Select Service --</option>
+      </select>
+
+      <!-- Quantity Input Field -->
+      <div id="quantityField" style="display:none; margin-top:10px;">
+        <label for="quantityInput">Area in Sqft</label>
+        <input type="number" id="quantityInput" name="quantity" value="1" min="1" placeholder="Enter area in sqft">
+         
+        <div id="areaError" style="color: red; font-size: 14px; margin-top: 2px;"></div>
+      </div>
+      <p class="min_text_mess"> (The minimum required area is 500 square feet)</p>
+      <p><strong>Total Price:</strong> <span id="totalPrice">₹0</span></p>
+
+      <!-- Communication Method -->
+      <label class="form-label" required style="margin-top: 13px;">Preferred Method of Communication</label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="communication" value="Texting"> Texting</label>
+        <label class="radio-item"><input type="radio" name="communication" value="Email"> Email</label>
+        <label class="radio-item"><input type="radio" name="communication" value="Phone Call" checked required> Phone Call</label>
+      </div>
+
+      <!-- Address Fields -->
+      <input type="text" name="address" placeholder="Street Address" required>
+      <input type="text" name="address2" placeholder="Street Address Line 2">
+      <div class="form-group">
+        <input type="text" name="city" placeholder="City" required>
+        <input type="text" name="state" placeholder="State" required>
+      </div>
+
+      <!-- Date & Time -->
+      <label style="
+    font-weight: 600;
+    color: #328130;
+    margin-bottom: 5px;
+    display: block; font-family: arial;">Please pick a date & time</label>
+      <input type="datetime-local" id="service_date" name="service_date" required>
+
+      <!-- Additional Info -->
+      <textarea name="concern" placeholder="Any specific areas of concern?"></textarea>
+      <textarea name="comments" placeholder="Any specific comments or requests?"></textarea>
+
+      <!-- Terms Checkbox -->
+      <label>
+        <input type="checkbox" required style="width: 5%;">
+        I agree to the Agrivruddhi 
+        <a class="tern_agri" href="https://agrivruddhi.com/policies/terms-of-service" target="_blank">
+          Terms & Conditions
+        </a> before submitting.
+      </label><br><br>
+
+      <button type="submit" class="agri_pest_control-submit-btn">Submit</button>
+    </div>
+    </form>
+
+    <div id="responseMessage" style="margin-top:15px; font-weight:600;"></div>
+  </div>
+</div>
+
+<script>
+
+// service date 
+      const input = document.getElementById('service_date');
+
+  // Set minimum (current time, rounded to nearest hour)
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  const localISOTime = now.toISOString().slice(0, 16);
+  input.min = localISOTime;
+
+  // Listen for user input
+  input.addEventListener('input', function () {
+    const selected = new Date(this.value);
+
+    // Check if selected is in the past
+    const now = new Date();
+    if (selected < now) {
+      alert("Please select a future date and time.");
+      this.value = "";
+      return;
+    }
+
+    // Check if time is within shop hours (9 AM to 5 PM)
+    const hours = selected.getHours();
+    if (hours < 9 || hours >= 17) {
+      alert("Please select a time between 9:00 AM and 5:00 PM.");
+      this.value = "";
+      return;
+    }
+  });
+
+// end //
+    
+// Services
+const residentialServices = {
+  "Cockroach Control Service": { price: 1683 },
+  "Rat Control Service": { price: 2652 },
+  "Mosquito Control Service": { price: 2652 },
+  "Termite Control Service": { pricePerSqft: 8 },
+  "Ants and Bugs Control Service": { price: 1657 },
+  "Bed Bug Control Service": { price: 2550 },
+  "General Pest Control Service": { price: 2652 },
+  "1 BHK (VIP Package)": { price: 2640 },
+  "2 BHK (VIP Package)": { price: 8025 },
+  "3 BHK (VIP Package)": { price: 9530 },
+  "Duplex House (VIP Package)": { price: 14700 },
+  "Triplex House (VIP Package)": {price: 18750 }
+};
+const commercialServices = {
+  "Cockroach Control Service": { pricePerSqft: 4 },
+  "Rat Control Service": { pricePerSqft: 5 },
+  "Mosquito Control Service": { pricePerSqft: 3 },
+  "Bed Bug Control Service": { pricePerSqft: 4 },
+  "Termite Control Service": { pricePerSqft: 5 }
+};
+
+// Variant ID mapping
+const residentialProductMap = {
+  "Cockroach Control Service": 62396082618737,
+  "Rat Control Service": 62396088746353,
+  "Mosquito Control Service": 62435194044785,
+  "Termite Control Service": 62435195486577,
+  "Ants and Bugs Control Service": 62396173386097,
+  "Bed Bug Control Service": 62579081511281,
+  "General Pest Control Service": 62405416190321,
+  "1 BHK (VIP Package)": 62582713319793,
+  "2 BHK (VIP Package)": 62582921396593,
+  "3 BHK (VIP Package)": 62582990438769,
+  "Duplex House (VIP Package)": 62583037886833,
+  "Triplex House (VIP Package)": 62583136682353
+};
+
+const commercialProductMap = {
+  "Cockroach Control Service": 62435213508977,
+  "Rat Control Service": 62435214000497,
+  "Mosquito Control Service": 62435214197105,
+  "Bed Bug Control Service": 62579092586865,
+  "Termite Control Service": 62435214426481
+};
+
+// Products requiring minimum 500 sqft validation
+const min500Products = [
+  62435195486577,
+  62435213508977,
+  62435214000497,
+  62435214197105,
+  62579092586865,
+  62435214426481
+];
+
+const propertyRadios = document.querySelectorAll('input[name="property_type"]');
+const serviceSelect = document.getElementById("serviceSelect");
+const quantityField = document.getElementById("quantityField");
+const quantityInput = document.getElementById("quantityInput");
+const totalPriceEl = document.getElementById("totalPrice");
+const responseMessage = document.getElementById("responseMessage");
+
+let currentServiceList = {};
+let currentProductMap = {};
+let selectedVariantId = null;
+
+// Update service dropdown
+propertyRadios.forEach(radio => {
+  radio.addEventListener("change", () => {
+    const selected = radio.value;
+    currentServiceList = selected === "Residential" ? residentialServices : commercialServices;
+    currentProductMap = selected === "Residential" ? residentialProductMap : commercialProductMap;
+
+    serviceSelect.innerHTML = `<option value="">-- Select Service --</option>`;
+    for (const [name] of Object.entries(currentServiceList)) {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      serviceSelect.appendChild(option);
+    }
+
+    totalPriceEl.textContent = "₹0";
+    quantityField.style.display = "none";
+    quantityInput.value = 1;
+    selectedVariantId = null;
+  });
+});
+
+// Update total price
+function updatePrice() {
+  const serviceName = serviceSelect.value;
+  const service = currentServiceList[serviceName];
+  if (!service) {
+    totalPriceEl.textContent = "₹0";
+    quantityField.style.display = "none";
+    selectedVariantId = null;
+    return;
+  }
+
+  selectedVariantId = currentProductMap[serviceName];
+
+  if (service.pricePerSqft) {
+    quantityField.style.display = "block";
+    const qty = parseInt(quantityInput.value) || 1;
+    totalPriceEl.textContent = "₹" + (qty * service.pricePerSqft).toLocaleString();
+  } else {
+    quantityField.style.display = "none";
+    totalPriceEl.textContent = service.price ? "₹" + service.price.toLocaleString() : "₹0";
+  }
+}
+
+serviceSelect.addEventListener("change", updatePrice);
+quantityInput.addEventListener("input", updatePrice);
+
+// Pin code validation
+const availablePinCodes = ["506002","506005","506006","506007","506008","506009","506001","506002","506015","506370","506001","506001","506310","506371","506003","506004","506003","506003","506004","506142","506342","506369","506313","506314","506132","506329","506330","506006","506142","506122","506332","506172","506142","506349","506319","506348","506164","506367","506331"];
+const pinCodeInput = document.getElementById("pinCodeInput");
+const pinCodeError = document.getElementById("pinCodeError");
+const agriPopupForm = document.getElementById("agri_pest-1603");
+
+pinCodeInput.addEventListener("input", () => {
+  const value = pinCodeInput.value.trim();
+  if (value.length != 6 || !availablePinCodes.includes(value)) {
+    pinCodeError.textContent = "⚠️ Sorry, this service is not available in your area.";
+    pinCodeInput.style.borderColor = "red";
+    agriPopupForm.style.display = "none";
+  } else {
+    pinCodeError.textContent = "";
+    pinCodeInput.style.borderColor = "";
+    agriPopupForm.style.display = "block";
+  }
+});
+
+// Form submission with Shopify AJAX
+document.getElementById("pestControlForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  responseMessage.textContent = "";
+
+  const formData = new FormData(e.target);
+  const propertyType = formData.get("property_type");
+  const serviceName = formData.get("service");
+
+  if (!propertyType || !serviceName) {
+    alert("Please select both Property Type and Service.");
+    return;
+  }
+
+  const variantId = selectedVariantId;
+  if (!variantId) {
+    alert("This service is not available for cart checkout.");
+    return;
+  }
+
+  // Validate minimum 500 sqft for specific products
+  const qty = parseInt(quantityInput.value) || 1;
+  if (min500Products.includes(variantId) && qty < 500) {
+    const areaError = document.getElementById("areaError");
+    areaError.textContent = "Please enter a minimum of 500 sqft";
+    quantityInput.style.borderColor = "red";
+    return;
+  } else {
+    document.getElementById("areaError").textContent = "";
+    quantityInput.style.borderColor = "";
+  }
+
+  let cartQuantity = 1;
+  const service = currentServiceList[serviceName];
+  if (service.pricePerSqft) {
+    cartQuantity = qty;
+  }
+
+  const attributes = {};
+  formData.forEach((value, key) => attributes[key] = value);
+  attributes["Total Price"] = totalPriceEl.textContent;
+
+  const payload = { id: variantId, quantity: cartQuantity, properties: attributes };
+
+  try {
+    const response = await fetch("/cart/add.js", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      responseMessage.style.color = "#328130";
+      responseMessage.textContent = `✅ ${cartQuantity} item(s) added to your cart successfully!`;
+      setTimeout(() => (window.location.href = "/cart"), 1200);
+    } else {
+      const error = await response.json();
+      responseMessage.style.color = "red";
+      responseMessage.textContent = "⚠️ Error: " + (error.description || "Unable to add service.");
+    }
+  } catch (err) {
+    console.error(err);
+    responseMessage.style.color = "red";
+    responseMessage.textContent = "⚠️ Something went wrong. Please try again.";
+  }
+});
+</script>
+
+<style>
+.tern_agri { color: #328130; text-decoration: underline; }
+.agri_pest_control-container { max-width: 800px; margin: 50px auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0 15px; }
+.agri_pest_control-wrapper { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+.agri_pest_control-wrapper h2 { color: #328130; margin-bottom: 5px; font-weight: 600; font-size: 28px; }
+input, select, textarea { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-size: 14px; box-sizing: border-box; }
+textarea { min-height: 80px; }
+.form-label { font-weight: 600; color: #328130; margin-bottom: 5px; display: block; font-family: arial; }
+.radio-group { display: flex; flex-direction: row; gap: 20px; margin-bottom: 15px; }
+.form-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+.form-group input { flex: 1; min-width: 0; }
+.agri_pest_control-submit-btn { background-color: #328130; color: #fff; border: none; padding: 14px 25px; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: background-color 0.3s ease; width: 100%; }
+.agri_pest_control-submit-btn:hover { background-color: #276022; }
+#totalPrice { font-size: 18px; font-weight: 700; color: #328130; }
+.radio-item input, .radio-group input{ width:unset; margin: 0px; }
+
+@media (max-width: 600px) {
+  .agri_pest_control-wrapper { padding: 20px; }
+  .form-group { flex-direction: column; gap: 10px; }
+}
+.agri_pest-1603{
+display:none;
+}
+</style>
